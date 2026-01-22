@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 
 load_dotenv()
 
-# ----------------- CONFIG -----------------
+
 llm =ChatGroq(
     model="llama-3.1-8b-instant",
     api_key=os.getenv("GROQ_API_KEY")
@@ -22,7 +22,7 @@ youtube = build(
     developerKey=os.getenv("YOUTUBE_API_KEY")
 )
 
-# ----------------- STATE -----------------
+
 class AgentState(TypedDict):
     query: str
     intent: Dict[str, Any]
@@ -31,7 +31,6 @@ class AgentState(TypedDict):
     channels: List[Dict]
     final_results: List[Dict]
 
-# ----------------- NODE 1: INTENT PARSER -----------------
 import json
 
 def parse_intent(state: AgentState) -> AgentState:
@@ -57,7 +56,7 @@ Return JSON only with:
     return state
 
 
-# ----------------- NODE 2: DISCOVERY -----------------
+
 def discover_videos(state: AgentState) -> AgentState:
     published_after = (datetime.utcnow() - timedelta(days=30)).isoformat("T") + "Z"
 
@@ -79,7 +78,7 @@ def discover_videos(state: AgentState) -> AgentState:
     state["video_ids"] = video_ids
     return state
 
-# ----------------- NODE 3: VIDEO ENRICHMENT -----------------
+
 def fetch_video_stats(state: AgentState) -> AgentState:
     response = youtube.videos().list(
         part="snippet,statistics,contentDetails",
@@ -89,7 +88,7 @@ def fetch_video_stats(state: AgentState) -> AgentState:
     state["videos"] = response["items"]
     return state
 
-# ----------------- NODE 4: CHANNEL ENRICHMENT -----------------
+
 def fetch_channels(state: AgentState) -> AgentState:
     channel_ids = list({
         v["snippet"]["channelId"]
@@ -104,7 +103,7 @@ def fetch_channels(state: AgentState) -> AgentState:
     state["channels"] = response["items"]
     return state
 
-# ----------------- NODE 5: AI EVALUATOR -----------------
+
 def evaluate(state: AgentState) -> AgentState:
     prompt = f"""
 Analyze creators.
@@ -132,7 +131,6 @@ Return JSON list with:
     return state
 
 
-# ----------------- GRAPH -----------------
 graph = StateGraph(AgentState)
 
 graph.add_node("intent", parse_intent)
@@ -150,14 +148,15 @@ graph.add_edge("evaluate", END)
 
 agent = graph.compile()
 
-# ----------------- RUN -----------------
+
 if __name__ == "__main__":
     result = agent.invoke({
         "query": "Find Indian fashion creators under 500k subs whose shorts are growing fast"
     })
 
     for r in result["final_results"]:
-        print("\n🔥", r["channel_name"])
+        print("\n", r["channel_name"])
         print("Subs:", r["subscribers"])
         print("Avg Views:", r["avg_views"])
-        print("Why:", r["reasoning"])
+
+#ddhdb
